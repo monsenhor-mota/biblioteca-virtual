@@ -80,7 +80,7 @@ function fadeIn(el, display) {
     })();
 };
 
-const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhI4KXM8PKpPAX-Oe5ABc6QIC4x1oJNCVDE9IjuXpk7E_GqjT6Cu4Z1gdLyNfDXRXWlP2P9IluR65b/pub?output=csv";
+const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSa5-b4b-t67yLlIYWJ4O7LYObXssru6Pgilq5RrqgcEtZxXCGKdTk2h-UMBi3fbv16eykwGWYJyGw5/pub?output=csv";
 
 async function carregarDados() {
   const response = await fetch(url);
@@ -104,10 +104,10 @@ function csvParaJson(csv) {
   });
 }
 
-function selecionarDisciplina(disciplina) {
-  const select = document.getElementById("filtroDisciplina");
+function selecionarTurma(turma) {
+  const select = document.getElementById("filtroTurma");
 
-  select.value = disciplina;
+  select.value = turma;
 
   aplicarFiltros(); // reaplica os filtros automaticamente
 
@@ -117,10 +117,10 @@ function selecionarDisciplina(disciplina) {
 }
 
 function renderizar(lista) {
-  const container = document.getElementById("lista_disciplinas");
+  const container = document.getElementById("lista_turmas");
 
   container.innerHTML = lista.map(item => `
-    <div class="col-lg-3 col-md-6 mb-5 mb-lg-0 pt-xxl-4" onclick="selecionarDisciplina('${item}')">
+    <div class="col-lg-3 col-md-6 mb-5 mb-lg-0 pt-xxl-4" onclick="selecionarTurma('${item}')">
                         <span class="service-icon rounded-circle mx-auto mb-3"><i class="icon-book-open"></i></span>
                         <h4><strong>${item}</strong></h4>
                     </div>
@@ -184,6 +184,17 @@ function preencherDropdown(disciplinas, turmas) {
   `).join("");
 }
 
+function atualizarURL(disciplina, turma) {
+  const params = new URLSearchParams();
+
+  if (disciplina) params.set("disciplina", disciplina);
+  if (turma) params.set("turma", turma);
+
+  const novaURL = `${window.location.pathname}?${params.toString()}`;
+
+  window.history.replaceState({}, "", novaURL);
+}
+
 function aplicarFiltros() {
   const disciplina = document.getElementById("filtroDisciplina").value;
   const turma = document.getElementById("filtroTurma").value;
@@ -205,6 +216,16 @@ function aplicarFiltros() {
   });
 
   renderizarLivros(filtrados);
+  atualizarURL(disciplina, turma);
+}
+
+function pegarParametrosURL() {
+  const params = new URLSearchParams(window.location.search);
+  console.log(params);
+  return {
+    disciplinaFiltrada: params.get("disciplina") || "",
+    turmaFiltrada: params.get("turma") || ""
+  };
 }
 
 async function main() {
@@ -214,13 +235,26 @@ async function main() {
   console.log(dados);
   console.log(disciplinas);
 
+  const { disciplinaFiltrada, turmaFiltrada } = pegarParametrosURL();
+
   preencherDropdown(disciplinas, turmas);
-  renderizar(disciplinas);
+  renderizar(turmas);
 
   document.getElementById("filtroDisciplina")
   .addEventListener("change", aplicarFiltros);
   document.getElementById("filtroTurma")
   .addEventListener("change", aplicarFiltros);
+
+  // atualiza selects
+  document.getElementById("filtroDisciplina").value = disciplinaFiltrada;
+  document.getElementById("filtroTurma").value = turmaFiltrada;
+  if (disciplinaFiltrada != "" || turmaFiltrada != ""){
+    document.getElementById("portfolio").scrollIntoView({
+    behavior: "smooth"
+  });
+  console.log("turmaFiltrada", turmaFiltrada);
+  aplicarFiltros();
+  }
   
 }
 
